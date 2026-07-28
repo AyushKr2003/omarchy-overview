@@ -2,7 +2,7 @@
 
 A Hyprland workspace overview plugin with live window previews, seamless theme integration, and app icon resolution for [Omarchy Shell](https://github.com/AyushKr2003/omarchy-dotfiles).
 
-![Omarchy Overview Screenshot](assets/image.png)
+![Omarchy Overview Screenshot](preview.png)
 
 > 💡 **Credits & Attribution**: This plugin is adapted from and made compatible with Omarchy based on [Shanu-Kumawat/quickshell-overview](https://github.com/Shanu-Kumawat/quickshell-overview.git).
 

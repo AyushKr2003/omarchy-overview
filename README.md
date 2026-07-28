@@ -38,6 +38,28 @@ omarchy plugin enable omarchy-overview
 
 ---
 
+## Uninstallation
+
+### Via `omarchy plugin` (Recommended)
+
+Remove the plugin using the Omarchy CLI:
+
+```bash
+omarchy plugin remove omarchy-overview
+```
+
+---
+
+### Manual Uninstallation
+
+```bash
+omarchy plugin disable omarchy-overview
+rm -rf ~/.config/omarchy/plugins/omarchy-overview
+omarchy plugin rescan
+```
+
+---
+
 ## Keybinding & Usage
 
 ### Toggle via Shell IPC
@@ -99,3 +121,9 @@ Settings are read inline from `~/.config/omarchy/shell.json` inside the `plugins
 
 - Original Quickshell Overview by [Shanu-Kumawat/quickshell-overview](https://github.com/Shanu-Kumawat/quickshell-overview.git).
 - Adapted for Omarchy shell plugin architecture, IPC, and icon library integration by [AyushKr2003](https://github.com/AyushKr2003).
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

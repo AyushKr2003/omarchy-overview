@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "omarchy-overview",
+  "name": "Overview",
+  "version": "1.0.0",
+  "author": "AyushKr2003",
+  "description": "Hyprland workspace overview with live window previews.",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "modules/overview/Overview.qml"
+  },
+  "settings": {
+    "defaults": {
+      "rows": 2,
+      "columns": 5,
+      "hideEmptyRows": true,
+      "showSpecialWorkspaces": false,
+      "specialWorkspaceColumns": 5,
+      "showIcons": false
+    },
+    "schema": [
+      {
+        "key": "rows",
+        "type": "integer",
+        "label": "Rows",
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "defaultValue": 2
+      },
+      {
+        "key": "columns",
+        "type": "integer",
+        "label": "Columns",
+        "min": 1,
+        "max": 20,
+        "step": 1,
+        "defaultValue": 5
+      },
+      {
+        "key": "hideEmptyRows",
+        "type": "boolean",
+        "label": "Hide empty rows",
+        "defaultValue": true
+      },
+      {
+        "key": "showSpecialWorkspaces",
+        "type": "boolean",
+        "label": "Show special workspaces",
+        "defaultValue": false
+      },
+      {
+        "key": "specialWorkspaceColumns",
+        "type": "integer",
+        "label": "Special workspace columns",
+        "min": 1,
+        "max": 20,
+        "step": 1,
+        "defaultValue": 5
+      },
+      {
+        "key": "showIcons",
+        "type": "boolean",
+        "label": "Show app icons",
+        "defaultValue": false
+      }
+    ]
+  }
+}

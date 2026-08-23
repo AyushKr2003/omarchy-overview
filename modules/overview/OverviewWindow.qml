@@ -55,6 +55,7 @@ Item { // Window
 
     property var appLibrary: null
     property bool showIcons: Config.options.windowPreview.showIcons
+    property bool showTitles: Config.options.windowPreview.showTitles
     property var iconToWindowRatio: Config.options.windowPreview.iconToWindowRatio
     property var xwaylandIndicatorToIconRatio: Config.options.windowPreview.xwaylandIndicatorToIconRatio
     property var iconToWindowRatioCompact: Config.options.windowPreview.iconToWindowRatioCompact
@@ -114,34 +115,42 @@ Item { // Window
         return "";
     }
 
-    function findTuiAppIcon(title, initialTitle, entries) {
+    readonly property var tuiIgnoredTokens: [
+        "bash", "zsh", "fish", "sh", "ksh", "csh", "tcsh", "nu", "nushell",
+        "alacritty", "kitty", "foot", "footclient", "ghostty", "com.mitchellh.ghostty",
+        "wezterm", "org.wezfurlong.wezterm", "st", "urxvt", "xterm", "terminal",
+        "tui", "omarchy", "shadow", "root", "user", "home", "dev", "dotfiles",
+        "tmp", "etc", "usr", "var", "bin", "opt"
+    ]
+
+    function tuiTitleTokens(title, initialTitle) {
         var candidates = [];
         function addTokens(str) {
             if (!str) return;
             var tokens = String(str).trim().split(/[\s:|\-—–/\\()[\]{}]+/);
             for (var i = 0; i < tokens.length; i++) {
                 var tok = tokens[i].trim().toLowerCase();
-                if (tok.length > 1 && candidates.indexOf(tok) === -1) {
+                if (tok.length > 1 && candidates.indexOf(tok) === -1)
                     candidates.push(tok);
-                }
             }
         }
 
         addTokens(initialTitle);
         addTokens(title);
 
-        var ignored = [
-            "bash", "zsh", "fish", "sh", "ksh", "csh", "tcsh", "nu", "nushell",
-            "alacritty", "kitty", "foot", "footclient", "ghostty", "com.mitchellh.ghostty",
-            "wezterm", "org.wezfurlong.wezterm", "st", "urxvt", "xterm", "terminal",
-            "tui", "omarchy", "shadow", "root", "user", "home", "dev", "dotfiles",
-            "tmp", "etc", "usr", "var", "bin", "opt"
-        ];
+        var out = [];
+        for (var k = 0; k < candidates.length; k++) {
+            if (root.tuiIgnoredTokens.indexOf(candidates[k]) >= 0)
+                continue;
+            out.push(candidates[k]);
+        }
+        return out;
+    }
 
+    function findTuiAppIcon(title, initialTitle, entries) {
+        var candidates = tuiTitleTokens(title, initialTitle);
         for (var k = 0; k < candidates.length; k++) {
             var cand = candidates[k];
-            if (ignored.indexOf(cand) >= 0) continue;
-
             var icon = lookupEntryIcon(cand, entries);
             if (icon && icon.length > 0) return icon;
 
@@ -155,6 +164,99 @@ Item { // Window
         }
 
         return "";
+    }
+
+    function lookupEntryName(key, entries) {
+        if (!key) return "";
+        var h = DesktopEntries.heuristicLookup(key);
+        var name = String((h && h.name) || "").trim();
+        if (name.length > 0) return name;
+
+        var normKey = key.toLowerCase().replace(/\.desktop$/, "");
+        for (var i = 0; i < entries.length; i++) {
+            var e = entries[i];
+            if (!e) continue;
+            var eId = String(e.id || "").toLowerCase().replace(/\.desktop$/, "");
+            var eName = String(e.name || "").trim();
+            if ((eId === normKey || eName.toLowerCase() === normKey) && eName.length > 0)
+                return eName;
+        }
+        return "";
+    }
+
+    function prettyToken(value) {
+        var s = String(value || "").trim();
+        if (!s)
+            return "";
+        s = s.replace(/^(org|com|io|net|app)\./i, "");
+        s = s.replace(/[-_.]+/g, " ");
+        var parts = s.split(" ");
+        var out = [];
+        for (var i = 0; i < parts.length; i++) {
+            var p = parts[i];
+            if (!p.length)
+                continue;
+            out.push(p.charAt(0).toUpperCase() + p.slice(1));
+        }
+        return out.join(" ");
+    }
+
+    function findTuiAppName(title, initialTitle, entries) {
+        var candidates = tuiTitleTokens(title, initialTitle);
+        for (var k = 0; k < candidates.length; k++) {
+            var name = lookupEntryName(candidates[k], entries);
+            if (name && name.length > 0) return name;
+        }
+
+        return "";
+    }
+
+    property string displayTitle: {
+        DesktopEntries.applications.values;
+
+        if (!windowData) return "";
+
+        const entries = DesktopEntries.applications.values || [];
+        const cls = String(windowData.class || "").trim();
+        const initialClass = String(windowData.initialClass || "").trim();
+        const title = String(windowData.title || "").trim();
+        const initialTitle = String(windowData.initialTitle || "").trim();
+        const isTerminalWindow = FallbackIcon.isTerminalLikeClass(cls) || FallbackIcon.isTerminalLikeClass(initialClass);
+        let name = "";
+
+        // Terminals: the TUI or window title is more informative than "Foot".
+        if (isTerminalWindow) {
+            name = findTuiAppName(title, initialTitle, entries);
+            if (!name && title)
+                name = title;
+            if (!name && initialTitle)
+                name = initialTitle;
+        }
+
+        if (!name)
+            name = lookupEntryName(cls, entries);
+        if (!name && initialClass && initialClass !== cls)
+            name = lookupEntryName(initialClass, entries);
+
+        const extractedName = extractAppNameFromClass(cls);
+        if (!name && extractedName && extractedName !== cls) {
+            name = lookupEntryName(extractedName, entries);
+            if (!name)
+                name = prettyToken(extractedName);
+        }
+
+        if (!name && initialTitle)
+            name = lookupEntryName(initialTitle, entries);
+        if (!name && title) {
+            const cleanTitle = title.split(/\s+[-|–—]\s+/)[0].trim();
+            if (cleanTitle)
+                name = lookupEntryName(cleanTitle, entries) || cleanTitle;
+        }
+
+        if (!name)
+            name = prettyToken(extractedName || cls || initialClass);
+
+        return name || "Unknown";
     }
 
     property string iconName: {
@@ -255,6 +357,18 @@ Item { // Window
 
     property var iconPath: resolveIconSource(iconName)
     property bool compactMode: Style.font.caption * 4 > targetWindowHeight || Style.font.caption * 4 > targetWindowWidth
+    property real titlePixelSize: {
+        const renderedSize = Math.min(root.width, root.height);
+        const target = renderedSize * (root.compactMode ? 0.18 : 0.12);
+        const lo = Style.font.caption;
+        const hi = root.compactMode ? Style.font.bodySmall : Style.font.body;
+        return Math.round(Math.max(lo, Math.min(hi, target)));
+    }
+    readonly property int titlePadX: Style.spacing.controlPaddingX
+    readonly property int titlePadY: Style.spacing.controlPaddingY
+    readonly property int titleMaxWidth: Math.max(0, root.width - titlePadX * 2)
+    readonly property bool titleFits: titleMaxWidth >= Style.font.caption
+        && root.height >= (Style.font.caption + titlePadY * 2)
 
     property bool indicateXWayland: windowData?.xwayland ?? false
     property bool previewCaptureEnabled: true
@@ -362,6 +476,36 @@ Item { // Window
                 sourceSize.width: Math.max(1, Math.round(iconSize * Screen.devicePixelRatio))
                 sourceSize.height: Math.max(1, Math.round(iconSize * Screen.devicePixelRatio))
             }
+        }
+    }
+
+    Rectangle {
+        id: windowTitleChip
+        visible: root.showTitles && root.displayTitle.length > 0 && root.titleFits
+        z: 20
+        anchors.centerIn: parent
+        width: Math.min(root.width, titleLabel.width + root.titlePadX * 2)
+        height: Math.min(root.height, titleLabel.implicitHeight + root.titlePadY * 2)
+        clip: true
+        color: Color.launcher.background
+        radius: Style.cornerRadius
+        border.color: Color.launcher.border
+        border.width: Style.normalBorderWidth
+
+        StyledText {
+            id: titleLabel
+            anchors.centerIn: parent
+            width: Math.min(implicitWidth, root.titleMaxWidth)
+            text: root.displayTitle
+            wrapMode: Text.Wrap
+            elide: Text.ElideRight
+            maximumLineCount: root.compactMode ? 1 : 2
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            font.family: Style.font.family
+            font.pixelSize: root.titlePixelSize
+            font.weight: Font.DemiBold
+            color: Color.launcher.text
         }
     }
 

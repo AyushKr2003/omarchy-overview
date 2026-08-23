@@ -22,6 +22,8 @@ Singleton {
             return "specialWorkspaceColumns";
         if (path === "windowPreview.showIcons")
             return "showIcons";
+        if (path === "windowPreview.showTitles")
+            return "showTitles";
         return "";
     }
 
@@ -185,6 +187,7 @@ Singleton {
 
         property QtObject windowPreview: QtObject {
             property bool showIcons: root.asBool(root.setting("showIcons", false), false)
+            property bool showTitles: root.asBool(root.setting("showTitles", true), true)
             property real iconToWindowRatio: root.readReal("windowPreview.iconToWindowRatio", 0.25)
             property real iconToWindowRatioCompact: root.readReal("windowPreview.iconToWindowRatioCompact", 0.45)
             property real xwaylandIndicatorToIconRatio: root.readReal("windowPreview.xwaylandIndicatorToIconRatio", 0.35)

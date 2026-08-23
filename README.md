@@ -91,7 +91,8 @@ Settings are read inline from `~/.config/omarchy/shell.json` inside the `plugins
   "hideEmptyRows": true,
   "showSpecialWorkspaces": false,
   "specialWorkspaceColumns": 5,
-  "showIcons": true
+  "showIcons": false,
+  "showTitles": true
 }
 ```
 
@@ -105,12 +106,14 @@ Settings are read inline from `~/.config/omarchy/shell.json` inside the `plugins
 | `showSpecialWorkspaces` | `boolean` | `false` | Includes special scratchpad workspaces. |
 | `specialWorkspaceColumns` | `integer` | `5` | Columns count for special workspaces. |
 | `showIcons` | `boolean` | `false` | Display resolution-matched app icons on window delegates. |
+| `showTitles` | `boolean` | `true` | Display a resolved app/window title chip on each window preview. |
 
 ---
 
 ## Features & Omarchy Integration
 
 - **Live Window Previews**: Renders real-time Hyprland window thumbnails across workspaces.
+- **App Title Labels**: Resolves a desktop-entry name, TUI name, or window title and draws it as a theme-colored chip on each preview.
 - **Dynamic App Icon Resolution**: Resolves standard GUI apps, webapps/PWAs (Chrome/Brave/Edge), and terminal TUI apps (Yazi, Neovim, btop, ranger) matching `omarchy.menu`.
 - **Theme Integration**: Follows active Omarchy shell theme tokens (`qs.Commons.Color` & `qs.Commons.Style`).
 - **HiDPI Scaling**: Automatically scales icon rendering by `Screen.devicePixelRatio` for sharp rendering.

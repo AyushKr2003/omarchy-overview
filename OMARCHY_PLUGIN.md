@@ -38,7 +38,8 @@ Settings are read inline from `~/.config/omarchy/shell.json`, inside the
   "hideEmptyRows": "true",
   "showSpecialWorkspaces": "false",
   "specialWorkspaceColumns": "5",
-  "showIcons": "false"
+  "showIcons": "false",
+  "showTitles": "true"
 }
 ```
 

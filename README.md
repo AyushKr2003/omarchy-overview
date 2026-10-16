@@ -122,9 +122,7 @@ The default layout (`"layout": "missionControl"`), modelled on
   actions. Files (`fd`) and GNOME search providers (Nautilus and others) are
   opt-in.
 - **Keyboard**: arrows move the selection between windows and up into the
-  strip, Enter opens it, Tab walks strip → grid → next monitor, Delete or
-  Ctrl+W closes the selected window, Super+1..0 and Ctrl+←/→ (or PgUp/PgDn)
-  switch desktops, and Escape clears the search and then closes.
+  strip, Enter opens it, Tab walks strip → grid → next monitor.
 - **Mouse**: click a window to focus it (the pointer moves into it),
   middle-click it (or select it and press Delete) to close it, scroll to step through desktops, and
   click empty space to close.

@@ -179,6 +179,39 @@ Singleton {
             }
         }
 
+        // Hyprdrive-style mission control: the focused workspace's windows as
+        // a grid, a workspace strip on top, and type-to-search.
+        property QtObject missionControl: QtObject {
+            // "missionControl" or "grid" (the workspace grid).
+            property string layout: {
+                const value = `${root.setting("layout", "missionControl")}`.trim();
+                return value === "grid" ? "grid" : "missionControl";
+            }
+            property int gap: root.asInt(root.setting("missionControlGap", 32), 32)
+            property real maxScale: root.readReal("missionControl.maxScale", 0.85)
+            property bool showStrip: root.asBool(root.setting("showStrip", true), true)
+            property int stripHeightPct: Math.min(30, root.asInt(root.setting("stripHeightPct", 17), 17))
+            property int reflowMs: root.asInt(root.setting("reflowMs", 300), 300)
+            property bool openAnimation: root.asBool(root.setting("openAnimation", true), true)
+            property int openMs: root.asInt(root.setting("openAnimationMs", 280), 280)
+            property bool holdToSwap: root.asBool(root.setting("holdToSwap", true), true)
+            property int holdToSwapMs: root.asInt(root.setting("holdToSwapMs", 1500), 1500)
+            property real dragMiniScale: root.readReal("missionControl.dragMiniScale", 0.45)
+            property bool springEdges: root.asBool(root.setting("springEdges", true), true)
+            property int springDelayMs: root.asInt(root.setting("springDelayMs", 1500), 1500)
+            property real backdropOpacity: Math.max(0, Math.min(1, root.readReal("backdropOpacity", 0.9)))
+            property bool wallpaperBackdrop: root.asBool(root.setting("wallpaperBackdrop", true), true)
+            property bool wallpaperBlur: root.asBool(root.setting("wallpaperBlur", true), true)
+            property real wallpaperDim: Math.max(0, Math.min(1, root.readReal("wallpaperDim", 0.45)))
+            property bool searchEnabled: root.asBool(root.setting("searchEnabled", true), true)
+            // "off", "top-left", "top-right", "bottom-left" or "bottom-right".
+            property string hotCorner: {
+                const value = `${root.setting("hotCorner", "off")}`.trim();
+                return ["top-left", "top-right", "bottom-left", "bottom-right"].includes(value) ? value : "off";
+            }
+            property int hotCornerDelayMs: root.asInt(root.setting("hotCornerDelayMs", 150), 150)
+        }
+
         property QtObject position: QtObject {
             property int topMargin: root.readInt("position.topMargin", 100)
         }

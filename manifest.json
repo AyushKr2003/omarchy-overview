@@ -4,9 +4,10 @@
   "name": "Overview",
   "version": "1.0.0",
   "author": "AyushKr2003",
-  "description": "Hyprland workspace overview with live window previews.",
+  "description": "Hyprland overview: mission-control window grid, workspace strip, type-to-search, and a classic workspace grid.",
   "kinds": [
-    "overlay"
+    "overlay",
+    "menu"
   ],
   "keepLoaded": true,
   "entryPoints": {
@@ -14,14 +15,199 @@
   },
   "settings": {
     "defaults": {
+      "layout": "missionControl",
+      "showStrip": true,
+      "stripHeightPct": 17,
+      "missionControlGap": 32,
+      "reflowMs": 300,
+      "openAnimation": true,
+      "openAnimationMs": 280,
+      "backdropOpacity": 0.9,
+      "searchEnabled": true,
+      "searchMenu": true,
+      "searchFiles": false,
+      "searchProviders": false,
+      "holdToSwap": true,
+      "holdToSwapMs": 1500,
+      "springEdges": true,
+      "springDelayMs": 1500,
+      "hotCorner": "off",
+      "hotCornerDelayMs": 150,
       "rows": 2,
       "columns": 5,
       "hideEmptyRows": true,
       "showSpecialWorkspaces": false,
       "specialWorkspaceColumns": 5,
-      "showIcons": false
+      "showIcons": false,
+      "wallpaperBackdrop": true,
+      "wallpaperBlur": true,
+      "wallpaperDim": 0.45
     },
     "schema": [
+      {
+        "key": "layout",
+        "type": "string",
+        "label": "Layout",
+        "options": [
+          "missionControl",
+          "grid"
+        ],
+        "defaultValue": "missionControl"
+      },
+      {
+        "key": "showStrip",
+        "type": "boolean",
+        "label": "Workspace strip",
+        "defaultValue": true
+      },
+      {
+        "key": "stripHeightPct",
+        "type": "integer",
+        "label": "Strip height (% of screen)",
+        "min": 5,
+        "max": 30,
+        "step": 1,
+        "defaultValue": 17
+      },
+      {
+        "key": "missionControlGap",
+        "type": "integer",
+        "label": "Gap between windows",
+        "min": 0,
+        "max": 200,
+        "step": 2,
+        "defaultValue": 32
+      },
+      {
+        "key": "reflowMs",
+        "type": "integer",
+        "label": "Reflow duration (ms)",
+        "min": 0,
+        "max": 2000,
+        "step": 10,
+        "defaultValue": 300
+      },
+      {
+        "key": "openAnimation",
+        "type": "boolean",
+        "label": "Zoom windows in and out",
+        "defaultValue": true
+      },
+      {
+        "key": "openAnimationMs",
+        "type": "integer",
+        "label": "Open duration (ms)",
+        "min": 50,
+        "max": 2000,
+        "step": 10,
+        "defaultValue": 280
+      },
+      {
+        "key": "backdropOpacity",
+        "type": "number",
+        "label": "Backdrop opacity",
+        "min": 0,
+        "max": 1,
+        "step": 0.05,
+        "defaultValue": 0.9
+      },
+      {
+        "key": "wallpaperBackdrop",
+        "type": "boolean",
+        "label": "Wallpaper behind the overview",
+        "defaultValue": true
+      },
+      {
+        "key": "wallpaperBlur",
+        "type": "boolean",
+        "label": "Blur the wallpaper",
+        "defaultValue": true
+      },
+      {
+        "key": "wallpaperDim",
+        "type": "number",
+        "label": "Wallpaper dim",
+        "min": 0,
+        "max": 1,
+        "step": 0.05,
+        "defaultValue": 0.45
+      },
+      {
+        "key": "searchEnabled",
+        "type": "boolean",
+        "label": "Type to search",
+        "defaultValue": true
+      },
+      {
+        "key": "searchMenu",
+        "type": "boolean",
+        "label": "Search Omarchy menu actions",
+        "defaultValue": true
+      },
+      {
+        "key": "searchFiles",
+        "type": "boolean",
+        "label": "Search files in home (fd)",
+        "defaultValue": false
+      },
+      {
+        "key": "searchProviders",
+        "type": "boolean",
+        "label": "Search GNOME search providers",
+        "defaultValue": false
+      },
+      {
+        "key": "holdToSwap",
+        "type": "boolean",
+        "label": "Hold a dragged window over another to swap",
+        "defaultValue": true
+      },
+      {
+        "key": "holdToSwapMs",
+        "type": "integer",
+        "label": "Hold-to-swap delay (ms)",
+        "min": 300,
+        "max": 5000,
+        "step": 100,
+        "defaultValue": 1500
+      },
+      {
+        "key": "springEdges",
+        "type": "boolean",
+        "label": "Drag to a screen edge to change desktop",
+        "defaultValue": true
+      },
+      {
+        "key": "springDelayMs",
+        "type": "integer",
+        "label": "Edge spring delay (ms)",
+        "min": 200,
+        "max": 10000,
+        "step": 100,
+        "defaultValue": 1500
+      },
+      {
+        "key": "hotCorner",
+        "type": "string",
+        "label": "Hot corner",
+        "options": [
+          "off",
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "defaultValue": "off"
+      },
+      {
+        "key": "hotCornerDelayMs",
+        "type": "integer",
+        "label": "Hot corner delay (ms)",
+        "min": 0,
+        "max": 2000,
+        "step": 10,
+        "defaultValue": 150
+      },
       {
         "key": "rows",
         "type": "integer",

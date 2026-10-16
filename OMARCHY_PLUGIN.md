@@ -38,11 +38,17 @@ Settings are read inline from `~/.config/omarchy/shell.json`, inside the
   "hideEmptyRows": "true",
   "showSpecialWorkspaces": "false",
   "specialWorkspaceColumns": "5",
-  "showIcons": "false"
+  "showIcons": "false",
+  "layout": "missionControl"
 }
 ```
 
+`layout` is `"missionControl"` (the default: window grid, workspace strip,
+type-to-search) or `"grid"` (the workspace grid). See README.md for every
+setting. The file is watched, so edits apply without a restart.
+
 The plugin follows the same shape as Omarchy panels: it exposes `settings`
 and `setting(name, fallback)`, and the overview config reads the fields from
-there. Its local `Color` and `Style` wrappers delegate to Omarchy
+there. The shell does not pass overlay plugins their settings, so the
+overview reads its entry from `shell.json` itself. Its local `Color` and `Style` wrappers delegate to Omarchy
 `qs.Commons`, so it uses the active shell theme.

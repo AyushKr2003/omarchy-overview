@@ -1,3 +1,9 @@
 Overview 1.0 Overview.qml
 OverviewWidget 1.0 OverviewWidget.qml
 OverviewWindow 1.0 OverviewWindow.qml
+MissionControl 1.0 MissionControl.qml
+MissionTile 1.0 MissionTile.qml
+StripCell 1.0 StripCell.qml
+SearchPill 1.0 SearchPill.qml
+SearchResults 1.0 SearchResults.qml
+HotCorner 1.0 HotCorner.qml

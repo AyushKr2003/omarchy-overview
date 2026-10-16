@@ -1,10 +1,10 @@
 # Omarchy Overview Plugin
 
-A Hyprland workspace overview plugin with live window previews, seamless theme integration, and app icon resolution for [Omarchy Shell](https://github.com/AyushKr2003/omarchy-dotfiles).
+A Hyprland overview plugin: a mission-control window grid with a workspace strip and type-to-search, plus the classic workspace grid, with live window previews, theme integration, and app icon resolution for [Omarchy Shell](https://github.com/AyushKr2003/omarchy-dotfiles).
 
 ![Omarchy Overview Screenshot](preview.png)
 
-> 💡 **Credits & Attribution**: This plugin is adapted from and made compatible with Omarchy based on [Shanu-Kumawat/quickshell-overview](https://github.com/Shanu-Kumawat/quickshell-overview.git).
+> 💡 **Credits & Attribution**: This plugin is adapted from and made compatible with Omarchy based on [Shanu-Kumawat/quickshell-overview](https://github.com/Shanu-Kumawat/quickshell-overview.git). The mission-control layout follows [dragosol/hyprdrive-omarchy](https://github.com/dragosol/hyprdrive-omarchy).
 
 ---
 
@@ -77,25 +77,109 @@ hl.unbind("SUPER + TAB")
 o.bind("SUPER + TAB", "Overview", "omarchy-shell shell toggle omarchy-overview")
 ```
 
+### Tap Super (optional)
+
+To toggle the overview by tapping Super on its own, add a release bind.
+Hyprland skips a release bind once another key is pressed during the hold,
+so `SUPER + T`, `SUPER + SPACE` and the rest keep working:
+
+```lua
+o.bind("SUPER + SUPER_L", "Overview", "omarchy-shell shell toggle omarchy-overview", { release = true })
+```
+
+### Other IPC calls
+
+```bash
+qs ipc -p "$OMARCHY_PATH/shell" call overview search "firefox"   # open with a query
+qs ipc -p "$OMARCHY_PATH/shell" call overview state              # open | closed
+qs ipc -p "$OMARCHY_PATH/shell" call overview info               # JSON: query, results, tile geometry
+```
+
+---
+
+## Mission control
+
+The default layout (`"layout": "missionControl"`), modelled on
+[Hyprdrive](https://github.com/dragosol/hyprdrive-omarchy)'s overview:
+
+- **Window grid**: the focused desktop's windows as a grid of live previews
+  that keep their relative sizes. Opening zooms every window out of its real
+  place, and closing zooms it back. The grid reflows when a window opens or
+  closes.
+- **Wallpaper backdrop**: the overview sits on your wallpaper, blurred and
+  dimmed, and follows theme changes. Windows grow a little under the
+  pointer, show a close button in their corner, and carry their app icon on
+  their bottom edge.
+- **Workspace strip** across the top: a live thumbnail per desktop on this
+  monitor, a `+` cell for a new desktop, and special workspaces (the
+  scratchpad) detached on the right. Click a cell to switch desktops without
+  leaving the overview, or double-click to switch and close.
+- **Drag and drop**: drag a window onto a strip cell to move it there, onto `+`
+  to give it a desktop of its own, or onto a special workspace. Hold a dragged
+  window over another window for 1.5 s and let go to swap them. Hold it at
+  the left or right screen edge to carry it to the previous or next desktop.
+- **Type to search**: just start typing. Results cover open windows, apps,
+  a calculator (`12*(3+4)`; Enter copies the answer), and Omarchy menu
+  actions. Files (`fd`) and GNOME search providers (Nautilus and others) are
+  opt-in.
+- **Keyboard**: arrows move the selection between windows and up into the
+  strip, Enter opens it, Tab walks strip → grid → next monitor, Delete or
+  Ctrl+W closes the selected window, Super+1..0 and Ctrl+←/→ (or PgUp/PgDn)
+  switch desktops, and Escape clears the search and then closes.
+- **Mouse**: click a window to focus it (the pointer moves into it),
+  middle-click or the ✕ to close it, scroll to step through desktops, and
+  click empty space to close.
+- **Several monitors**: every monitor shows its own desktop. The arrows and
+  Tab cross between monitors, and search results show on the monitor the
+  overview was opened from.
+- **Hot corner** (off by default): resting the pointer in a screen corner
+  opens the overview, and resting there again closes it.
+
+The classic workspace grid is still available with `"layout": "grid"`.
+
 ---
 
 ## Configuration
 
-Settings are read inline from `~/.config/omarchy/shell.json` inside the `plugins` array entry:
+Settings are read inline from `~/.config/omarchy/shell.json`, inside the
+`plugins` array entry. Edits are picked up live:
 
 ```json
 {
   "id": "omarchy-overview",
-  "rows": 2,
-  "columns": 5,
-  "hideEmptyRows": true,
-  "showSpecialWorkspaces": false,
-  "specialWorkspaceColumns": 5,
-  "showIcons": true
+  "layout": "missionControl",
+  "hotCorner": "top-right",
+  "searchFiles": true
 }
 ```
 
-### Available Settings Schema
+### Mission control settings
+
+| Setting | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `layout` | `string` | `"missionControl"` | `"missionControl"` or `"grid"`. |
+| `showStrip` | `boolean` | `true` | Workspace strip across the top. |
+| `stripHeightPct` | `integer` | `17` | Strip height as a percent of the screen (max 30). |
+| `missionControlGap` | `integer` | `32` | Gap between window tiles. |
+| `reflowMs` | `integer` | `300` | How long a tile takes to glide to a new slot. |
+| `openAnimation` | `boolean` | `true` | Zoom windows out on open and back on close. |
+| `openAnimationMs` | `integer` | `280` | Open duration; close is 80% of it. Off when Hyprland animations are off. |
+| `wallpaperBackdrop` | `boolean` | `true` | Show the current wallpaper behind the overview and in the strip. |
+| `wallpaperBlur` | `boolean` | `true` | Blur that wallpaper. |
+| `wallpaperDim` | `number` | `0.45` | How much the wallpaper is darkened. |
+| `backdropOpacity` | `number` | `0.9` | Backdrop opacity when there is no wallpaper (or it is off). |
+| `searchEnabled` | `boolean` | `true` | Type to search. |
+| `searchMenu` | `boolean` | `true` | Include Omarchy menu actions. |
+| `searchFiles` | `boolean` | `false` | Include files under `~` (needs `fd`). |
+| `searchProviders` | `boolean` | `false` | Include GNOME search providers (D-Bus via `busctl`). |
+| `holdToSwap` | `boolean` | `true` | Hold a dragged window over another to swap them. |
+| `holdToSwapMs` | `integer` | `1500` | How long to hold before a swap. |
+| `springEdges` | `boolean` | `true` | Hold a dragged window at a screen edge to change desktop. |
+| `springDelayMs` | `integer` | `1500` | How long to hold at the edge. |
+| `hotCorner` | `string` | `"off"` | `off`, `top-left`, `top-right`, `bottom-left` or `bottom-right`. |
+| `hotCornerDelayMs` | `integer` | `150` | How long the pointer rests in the corner. |
+
+### Workspace grid settings
 
 | Setting | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -114,6 +198,14 @@ Settings are read inline from `~/.config/omarchy/shell.json` inside the `plugins
 - **Dynamic App Icon Resolution**: Resolves standard GUI apps, webapps/PWAs (Chrome/Brave/Edge), and terminal TUI apps (Yazi, Neovim, btop, ranger) matching `omarchy.menu`.
 - **Theme Integration**: Follows active Omarchy shell theme tokens (`qs.Commons.Color` & `qs.Commons.Style`).
 - **HiDPI Scaling**: Automatically scales icon rendering by `Screen.devicePixelRatio` for sharp rendering.
+- **App search and launching** go through the shell's own app library (the
+  manifest declares the `menu` kind to receive it), so hidden entries and
+  launch feedback match the Omarchy menu.
+
+### Network use
+
+None. File search runs `fd` locally, and the search providers are local
+D-Bus services.
 
 ---
 
@@ -121,6 +213,7 @@ Settings are read inline from `~/.config/omarchy/shell.json` inside the `plugins
 
 - Original Quickshell Overview by [Shanu-Kumawat/quickshell-overview](https://github.com/Shanu-Kumawat/quickshell-overview.git).
 - Adapted for Omarchy shell plugin architecture, IPC, and icon library integration by [AyushKr2003](https://github.com/AyushKr2003).
+- Mission-control behaviour (grid, strip, search, hold-to-swap, hot corner) after [dragosol/hyprdrive-omarchy](https://github.com/dragosol/hyprdrive-omarchy).
 
 ---
 

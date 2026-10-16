@@ -22,6 +22,9 @@ Singleton {
     property var activeWorkspace: null
     property var monitors: []
     property var layers: ({})
+    property var workspaceRules: []
+    // Emitted after each `hyprctl clients` refresh lands.
+    signal windowsUpdated()
     property bool pendingWindowsUpdate: false
     property bool pendingMonitorsUpdate: false
     property bool pendingLayersUpdate: false
@@ -38,6 +41,7 @@ Singleton {
 
     function updateMonitors() {
         getMonitors.running = true;
+        getWorkspaceRules.running = true;
     }
 
     function updateWorkspaces() {
@@ -150,6 +154,7 @@ Singleton {
                 }
                 root.windowByAddress = tempWinByAddress;
                 root.addresses = root.windowList.map(win => win.address);
+                root.windowsUpdated();
             }
         }
     }
@@ -161,6 +166,21 @@ Singleton {
             id: monitorsCollector
             onStreamFinished: {
                 root.monitors = JSON.parse(monitorsCollector.text);
+            }
+        }
+    }
+
+    Process {
+        id: getWorkspaceRules
+        command: ["hyprctl", "workspacerules", "-j"]
+        stdout: StdioCollector {
+            id: workspaceRulesCollector
+            onStreamFinished: {
+                try {
+                    root.workspaceRules = JSON.parse(workspaceRulesCollector.text);
+                } catch (e) {
+                    root.workspaceRules = [];
+                }
             }
         }
     }

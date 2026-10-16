@@ -27,6 +27,13 @@ QtObject {
     readonly property int selectedBorderWidth: Shell.Style.selectedBorderWidth
     readonly property int focusBorderWidth: Shell.Style.focusBorderWidth
 
+    readonly property bool reduceMotion: Shell.Style.reduceMotion
+
+    // Every animation runs for duration(ms): 0 while Hyprland animations are off.
+    function duration(ms) {
+        return Shell.Style.duration(ms);
+    }
+
     function space(px) {
         return Shell.Style.space(px);
     }

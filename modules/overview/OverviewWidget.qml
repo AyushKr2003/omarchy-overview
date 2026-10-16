@@ -26,7 +26,6 @@ Item {
     property bool monitorIsFocused: (Hyprland.focusedMonitor?.name == monitor.name)
     property var windows: HyprlandData.windowList
     property var windowByAddress: HyprlandData.windowByAddress
-    property var windowAddresses: HyprlandData.addresses
     property var workspaceIds: HyprlandData.workspaceIds
     property var monitorData: HyprlandData.monitors.find(m => m.id === root.monitor?.id)
     property real scale: Config.options.overview.scale
@@ -41,32 +40,20 @@ Item {
         ((monitor.width / monitor.scale - (monitorData?.reserved?.[1] ?? 0) - (monitorData?.reserved?.[3] ?? 0)) * root.scale) :
         ((monitor.height / monitor.scale - (monitorData?.reserved?.[1] ?? 0) - (monitorData?.reserved?.[3] ?? 0)) * root.scale))
 
-    property real workspaceNumberMargin: 80
     property real workspaceNumberSize: Config.options.overview.workspaceNumberBaseSize * monitor.scale
     property int workspaceZ: 0
     property int windowZ: 1
     property int windowDraggingZ: 99999
     property real workspaceSpacing: Config.options.overview.workspaceSpacing
     property real scaledWorkspaceSpacing: Style.spaceReal(workspaceSpacing)
-    property string emptyWorkspaceWallpaperPath: Config.options.overview.emptyWorkspaceWallpaper
-    property string specialEmptyWorkspaceWallpaperPath: Config.options.overview.specialEmptyWorkspaceWallpaper
     property bool showSpecialWorkspaces: Config.options.overview.showSpecialWorkspaces
     property var configuredSpecialWorkspaces: Config.options.overview.specialWorkspaces ?? []
     property int specialWorkspaceColumns: Math.max(1, Config.options.overview.specialWorkspaceColumns)
-    property real emptyWorkspaceWallpaperOverlayOpacity: Math.max(0, Math.min(1, Config.options.overview.effects.emptyWorkspaceWallpaperOverlayOpacity))
 
     property int draggingFromWorkspace: -1
     property int draggingTargetWorkspace: -1
     property string draggingTargetSpecialWorkspace: ""
-    property int previewRecaptureToken: 0
     property var allWorkspaces: HyprlandData.allWorkspaces
-    property bool previewsEnabled: Config.options.overview.previewsEnabled
-    property string previewModeRaw: Config.options.overview.previewMode
-    property string previewMode: {
-        const mode = `${previewModeRaw ?? "live"}`.trim().toLowerCase();
-        return (mode === "event" || mode === "snapshot") ? "event" : "live";
-    }
-    property bool useEventPreviewRefresh: previewsEnabled && previewMode === "event"
 
     readonly property var monitorSpecialWorkspaceNames: {
         const names = [];
@@ -117,9 +104,6 @@ Item {
         return out;
     }
 
-    readonly property bool hasSpecialWorkspaceSection: visibleSpecialWorkspaces.length > 0
-    readonly property bool hasEmptyWorkspaceWallpaper: `${emptyWorkspaceWallpaperPath ?? ""}`.trim().length > 0
-    readonly property bool hasSpecialEmptyWorkspaceWallpaper: `${specialEmptyWorkspaceWallpaperPath ?? ""}`.trim().length > 0
     readonly property string createSpecialWorkspaceTarget: "__create_special_workspace__"
     readonly property real specialWorkspaceTileHeight: root.workspaceImplicitHeight
     readonly property real specialStripGap: scaledWorkspaceSpacing * 1.8
@@ -159,7 +143,6 @@ Item {
     readonly property real specialGridUsedWidth: root.effectiveSpecialColumns * root.specialWorkspaceTileWidth + Math.max(0, root.effectiveSpecialColumns - 1) * root.scaledWorkspaceSpacing
     readonly property real specialGridOffsetX: root.specialStripPadding + Math.max(0, (root.specialGridInnerWidth - root.specialGridUsedWidth) / 2)
     readonly property real specialStripTop: workspaceColumnLayout.implicitHeight + root.scaledWorkspaceSpacing + root.specialStripGap
-    readonly property real specialStripTilesTop: root.specialStripTop + root.specialStripPadding + root.specialStripTitleHeight + root.specialStripTitleGap
     readonly property real specialGridHeight: root.specialWorkspaceRows * root.specialWorkspaceTileHeight + Math.max(0, root.specialWorkspaceRows - 1) * root.scaledWorkspaceSpacing
     readonly property real specialStripHeight: root.specialStripPadding * 2 + root.specialStripTitleHeight + root.specialStripTitleGap + root.specialGridHeight
 
@@ -230,10 +213,6 @@ Item {
         return wsName.startsWith("special:") ? wsName.slice(8) : "";
     }
 
-    function specialWorkspaceIndex(name) {
-        return visibleSpecialWorkspaces.indexOf(`${name ?? ""}`);
-    }
-
     function specialWorkspaceLabel(name) {
         const raw = `${name ?? ""}`.trim();
         if (raw.length === 0)
@@ -255,17 +234,6 @@ Item {
             index += 1;
 
         return `${base}-${index}`;
-    }
-
-    function wallpaperSource(path) {
-        const trimmed = `${path ?? ""}`.trim();
-        if (trimmed.length === 0)
-            return "";
-        if (trimmed.startsWith("file:/") || trimmed.startsWith("qrc:/") || trimmed.startsWith("image://") || trimmed.startsWith("http://") || trimmed.startsWith("https://"))
-            return trimmed;
-        if (trimmed.startsWith("/"))
-            return `file://${trimmed}`;
-        return trimmed;
     }
 
     function workspaceHasWindows(workspaceId) {
@@ -357,21 +325,7 @@ Item {
     implicitWidth: overviewBackground.implicitWidth + Appearance.sizes.elevationMargin * 2
     implicitHeight: overviewBackground.implicitHeight + Appearance.sizes.elevationMargin * 2
 
-    property Component windowComponent: OverviewWindow {}
-    property list<OverviewWindow> windowWidgets: []
 
-    Connections {
-        target: Hyprland
-        function onRawEvent(event) {
-            if (!GlobalStates.overviewOpen || !root.useEventPreviewRefresh)
-                return;
-
-            const eventName = `${event?.name ?? event?.event ?? event?.type ?? ""}`;
-            if (eventName === "closewindow" || eventName === "openwindow" || eventName === "movewindow") {
-                root.previewRecaptureToken += 1;
-            }
-        }
-    }
 
     StyledRectangularShadow {
         target: overviewBackground
@@ -422,8 +376,6 @@ Item {
                             id: workspace
                             property int colIndex: index
                             property int workspaceValue: root.getWorkspaceInCell(rowIndex, colIndex)
-                            property bool showWallpaper: root.hasEmptyWorkspaceWallpaper
-                            property bool hasWindows: root.workspaceHasWindows(workspaceValue)
                             property color defaultWorkspaceColor: "transparent"
                             property color hoveredWorkspaceColor: root.workspaceHoverFill
                             property color hoveredBorderColor: root.activeBorderColor
@@ -431,7 +383,7 @@ Item {
 
                             implicitWidth: root.workspaceImplicitWidth
                             implicitHeight: root.workspaceImplicitHeight
-                            color: (showWallpaper || (!root.workspaceHasWindows(workspaceValue) && !hoveredWhileDragging))
+                            color: (!root.workspaceHasWindows(workspaceValue) && !hoveredWhileDragging)
                                 ? "transparent"
                                 : (hoveredWhileDragging ? hoveredWorkspaceColor : defaultWorkspaceColor)
                             radius: Style.cornerRadius
@@ -440,53 +392,8 @@ Item {
                                 ? hoveredBorderColor
                                 : "transparent"
 
-                            Image {
-                                id: workspaceWallpaper
-                                visible: workspace.showWallpaper
-                                anchors.fill: parent
-                                source: root.wallpaperSource(root.emptyWorkspaceWallpaperPath)
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: true
-                                smooth: true
-                                mipmap: true
-                                layer.enabled: workspace.showWallpaper
-                                layer.smooth: true
-                                layer.effect: MultiEffect {
-                                    maskEnabled: true
-                                    maskSource: workspaceWallpaperMask
-                                    maskThresholdMin: 0.5
-                                    maskSpreadAtMin: 1.0
-                                }
-                            }
-
-                            Item {
-                                id: workspaceWallpaperMask
-                                anchors.fill: parent
-                                visible: false
-                                layer.enabled: true
-                                layer.smooth: true
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: workspace.radius
-                                }
-                            }
-
-                            Rectangle {
-                                visible: workspace.showWallpaper
-                                anchors.fill: parent
-                                radius: parent.radius
-                                color: ColorUtils.applyAlpha(
-                                    workspace.hoveredWhileDragging ? workspace.hoveredWorkspaceColor : workspace.defaultWorkspaceColor,
-                                    workspace.hoveredWhileDragging
-                                        ? Math.min(0.20, root.emptyWorkspaceWallpaperOverlayOpacity + 0.06)
-                                        : root.emptyWorkspaceWallpaperOverlayOpacity
-                                )
-                            }
-
                             StyledText {
                                 anchors.centerIn: parent
-                                visible: !workspace.showWallpaper
                                 text: workspaceValue
                                 font {
                                     pixelSize: root.workspaceNumberSize * root.scale
@@ -584,7 +491,6 @@ Item {
                                     && Number.isFinite(specialGeometry?.height)
                                     && specialGeometry.width > 0
                                     && specialGeometry.height > 0
-                                property bool showWallpaper: root.hasSpecialEmptyWorkspaceWallpaper
                                 property real geometryWidth: hasRenderableGeometry ? specialGeometry.width : Math.max(1, root.workspaceImplicitWidth / root.scale)
                                 property real geometryHeight: hasRenderableGeometry ? specialGeometry.height : Math.max(1, root.workspaceImplicitHeight / root.scale)
                                 property real fitScale: hasRenderableGeometry ? Math.min(width / geometryWidth, height / geometryHeight) : root.scale
@@ -596,40 +502,11 @@ Item {
                                 implicitHeight: root.specialWorkspaceTileHeight
                                 radius: Style.cornerRadius
                                 clip: true
-                                color: showWallpaper
-                                    ? "transparent"
-                                    : (dropTarget ? root.specialDropFill : (hovered ? root.specialTileHoverFill : baseColor))
+                                color: dropTarget ? root.specialDropFill : (hovered ? root.specialTileHoverFill : baseColor)
                                 border.width: dropTarget ? Math.max(1, Style.space(2)) : Style.controlBorderWidth(false, hovered)
                                 border.color: dropTarget
                                     ? root.activeBorderColor
                                     : Style.controlBorder(false, hovered, Color.foreground, Color.accent)
-
-                                Image {
-                                    visible: specialWorkspaceTile.showWallpaper
-                                    anchors.fill: parent
-                                    source: root.wallpaperSource(root.specialEmptyWorkspaceWallpaperPath)
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
-                                    cache: true
-                                    smooth: true
-                                    mipmap: true
-                                }
-
-                                Rectangle {
-                                    visible: specialWorkspaceTile.showWallpaper
-                                    anchors.fill: parent
-                                    radius: parent.radius
-                                    color: ColorUtils.applyAlpha(
-                                        specialWorkspaceTile.dropTarget
-                                            ? root.specialDropFill
-                                            : (specialWorkspaceTile.hovered ? root.specialTileHoverFill : specialWorkspaceTile.baseColor),
-                                        specialWorkspaceTile.dropTarget
-                                            ? Math.min(0.42, root.emptyWorkspaceWallpaperOverlayOpacity + 0.18)
-                                            : (specialWorkspaceTile.hovered
-                                                ? Math.min(0.34, root.emptyWorkspaceWallpaperOverlayOpacity + 0.10)
-                                                : root.emptyWorkspaceWallpaperOverlayOpacity)
-                                    )
-                                }
 
                                 Rectangle {
                                     anchors.left: parent.left
@@ -737,7 +614,6 @@ Item {
                                             xOffset: 0
                                             yOffset: 0
                                             widgetMonitorId: root.monitor.id
-                                            recaptureToken: root.previewRecaptureToken
                                             restrictToWorkspace: false
                                             animateSize: false
                                             z: root.specialWindowZ(windowData)
@@ -841,45 +717,16 @@ Item {
                         }
                         Rectangle {
                             id: createSpecialWorkspaceTile
-                            property bool showWallpaper: root.hasSpecialEmptyWorkspaceWallpaper
                             property bool hovered: createSpecialWorkspaceMouseArea.containsMouse
                             property bool dropTarget: root.draggingTargetSpecialWorkspace === root.createSpecialWorkspaceTarget
                             implicitWidth: root.specialWorkspaceTileWidth
                             implicitHeight: root.specialWorkspaceTileHeight
                             radius: Style.cornerRadius
-                            color: showWallpaper ? "transparent" : ColorUtils.applyAlpha(
-                                dropTarget ? root.specialDropFill : (hovered ? root.specialTileHoverFill : root.specialTileFill),
-                                1
-                            )
+                            color: dropTarget ? root.specialDropFill : (hovered ? root.specialTileHoverFill : root.specialTileFill)
                             border.width: dropTarget ? Math.max(1, Style.space(2)) : Style.controlBorderWidth(false, hovered)
                             border.color: dropTarget
                                 ? root.activeBorderColor
                                 : Style.controlBorder(false, hovered, Color.foreground, Color.accent)
-
-                            Image {
-                                visible: createSpecialWorkspaceTile.showWallpaper
-                                anchors.fill: parent
-                                source: root.wallpaperSource(root.specialEmptyWorkspaceWallpaperPath)
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: true
-                                smooth: true
-                                mipmap: true
-                            }
-
-                            Rectangle {
-                                visible: createSpecialWorkspaceTile.showWallpaper
-                                anchors.fill: parent
-                                radius: parent.radius
-                                color: ColorUtils.applyAlpha(
-                                    createSpecialWorkspaceTile.dropTarget ? root.specialDropFill : (createSpecialWorkspaceTile.hovered ? root.specialTileHoverFill : root.specialTileFill),
-                                    createSpecialWorkspaceTile.dropTarget
-                                        ? Math.min(0.28, root.emptyWorkspaceWallpaperOverlayOpacity + 0.08)
-                                        : (createSpecialWorkspaceTile.hovered
-                                            ? Math.min(0.34, root.emptyWorkspaceWallpaperOverlayOpacity + 0.10)
-                                            : root.emptyWorkspaceWallpaperOverlayOpacity)
-                                )
-                            }
 
                             Column {
                                 anchors.centerIn: parent
@@ -887,7 +734,6 @@ Item {
 
                                 StyledText {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    visible: !createSpecialWorkspaceTile.showWallpaper
                                     text: createSpecialWorkspaceTile.dropTarget ? "Release" : "+"
                                     font.family: Style.font.family
                                     font.pixelSize: createSpecialWorkspaceTile.dropTarget
@@ -900,7 +746,6 @@ Item {
 
                                 StyledText {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    visible: !createSpecialWorkspaceTile.showWallpaper
                                     text: "New special"
                                     font.family: Style.font.family
                                     font.pixelSize: Style.font.bodySmall
@@ -1008,7 +853,6 @@ Item {
                     availableWorkspaceWidth: root.workspaceImplicitWidth
                     availableWorkspaceHeight: root.workspaceImplicitHeight
                     widgetMonitorId: root.monitor.id
-                    recaptureToken: root.previewRecaptureToken
 
                     property bool atInitPosition: (initX == x && initY == y)
 

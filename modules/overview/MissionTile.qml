@@ -27,8 +27,7 @@ Item {
 
     property bool selected: false
     property bool dimmed: false
-    // The close button sits over the tile, so the pointer on it still counts.
-    readonly property bool hovered: mouseArea.containsMouse || closeArea.containsMouse
+    readonly property bool hovered: mouseArea.containsMouse
     readonly property string address: `${windowData?.address ?? ""}`
 
     // Drag state. dragX/dragY are the tile's top-left while it is dragged.
@@ -275,45 +274,6 @@ Item {
                 Dispatch.closeWindow(tile.address);
             else
                 tile.activated();
-        }
-    }
-
-    // Close button, inset in the top-right corner, fading in on hover.
-    Rectangle {
-        id: closeButton
-        readonly property bool shown: (tile.hovered || tile.selected) && !tile.dragging && tile.progress > 0.9 && !tile.dimmed
-        width: Math.round(Math.max(22, Math.min(Style.spacing.controlHeight, tile.height * 0.18)))
-        height: width
-        radius: width / 2
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.margins: Math.round(width * 0.35)
-        z: 5
-        opacity: shown ? 1 : 0
-        visible: opacity > 0
-        scale: closeArea.pressed ? 0.9 : 1
-        Behavior on opacity { NumberAnimation { duration: Style.duration(120) } }
-        Behavior on scale { NumberAnimation { duration: Style.duration(90) } }
-        color: closeArea.containsMouse ? Color.urgent : ColorUtils.applyAlpha(Color.background, 0.85)
-        border.width: Style.normalBorderWidth
-        border.color: closeArea.containsMouse ? Color.urgent : ColorUtils.applyAlpha(Color.foreground, 0.25)
-        Behavior on color { ColorAnimation { duration: Style.duration(100) } }
-
-        StyledText {
-            anchors.centerIn: parent
-            text: "✕"
-            font.pixelSize: Math.round(parent.width * 0.45)
-            font.weight: Font.DemiBold
-            color: closeArea.containsMouse ? Color.background : Color.foreground
-        }
-
-        MouseArea {
-            id: closeArea
-            anchors.fill: parent
-            enabled: closeButton.shown
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Dispatch.closeWindow(tile.address)
         }
     }
 

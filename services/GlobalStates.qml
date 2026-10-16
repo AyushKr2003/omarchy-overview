@@ -15,13 +15,11 @@ Singleton {
     // 0 = windows at their desktop positions, 1 = laid out in the overview.
     property real openProgress: 0
 
-    property bool superReleaseMightTrigger: true
-
     // Search text, shared by every monitor.
     property string query: ""
 
     // Keyboard selection, shared by every monitor so Tab can walk across
-    // them. region: "search" | "strip" | "grid" | "results".
+    // them. region: "strip" | "grid".
     property string selectionMonitor: ""
     property string selectionRegion: "grid"
     property int selectionIndex: -1

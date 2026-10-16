@@ -107,9 +107,8 @@ The default layout (`"layout": "missionControl"`), modelled on
   place, and closing zooms it back. The grid reflows when a window opens or
   closes.
 - **Wallpaper backdrop**: the overview sits on your wallpaper, blurred and
-  dimmed, and follows theme changes. Windows grow a little under the
-  pointer, show a close button in their corner, and carry their app icon on
-  their bottom edge.
+  dimmed, and follows theme changes. Each window carries its app icon on
+  its bottom edge.
 - **Workspace strip** across the top: a live thumbnail per desktop on this
   monitor, a `+` cell for a new desktop, and special workspaces (the
   scratchpad) detached on the right. Click a cell to switch desktops without
@@ -127,7 +126,7 @@ The default layout (`"layout": "missionControl"`), modelled on
   Ctrl+W closes the selected window, Super+1..0 and Ctrl+←/→ (or PgUp/PgDn)
   switch desktops, and Escape clears the search and then closes.
 - **Mouse**: click a window to focus it (the pointer moves into it),
-  middle-click or the ✕ to close it, scroll to step through desktops, and
+  middle-click it (or select it and press Delete) to close it, scroll to step through desktops, and
   click empty space to close.
 - **Several monitors**: every monitor shows its own desktop. The arrows and
   Tab cross between monitors, and search results show on the monitor the
@@ -189,6 +188,41 @@ Settings are read inline from `~/.config/omarchy/shell.json`, inside the
 | `showSpecialWorkspaces` | `boolean` | `false` | Includes special scratchpad workspaces. |
 | `specialWorkspaceColumns` | `integer` | `5` | Columns count for special workspaces. |
 | `showIcons` | `boolean` | `false` | Display resolution-matched app icons on window delegates. |
+
+### Advanced settings (nested keys)
+
+These go in the same entry as nested objects, e.g.
+`{"id": "omarchy-overview", "overview": {"closeOnFocusLoss": false}, "missionControl": {"maxScale": 0.7}}`.
+
+| Setting | Type | Default | Layout | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `missionControl.maxScale` | `number` | `0.85` | mission control | Largest size a window is drawn at in the grid, as a fraction of its real size. |
+| `missionControl.dragMiniScale` | `number` | `0.45` | mission control | Size a dragged window shrinks to over a strip cell. |
+| `overview.enable` | `boolean` | `true` | both | Turn the overview content off entirely. |
+| `overview.closeOnFocusLoss` | `boolean` | `true` | both | Close when focus moves elsewhere (and, in the grid layout, on a click outside the panel). |
+| `overview.previewsEnabled` | `boolean` | `true` | both | Live window previews; off draws empty frames. |
+| `overview.specialWorkspaces` | `array` | `[]` | both | Special workspace names to always list, even when empty. |
+| `overview.effects.enableBlur` | `boolean` | `false` | both | Use the `quickshell:overview-blur` layer namespace, for a Hyprland layer rule that blurs it. |
+| `overview.scale` | `number` | `0.16` | grid | Workspace thumbnail scale. |
+| `overview.useWorkspaceMap` | `boolean` | `false` | grid | Offset each monitor's workspace numbers by `overview.workspaceMap`. |
+| `overview.workspaceMap` | `array` | `[]` | grid | Per-monitor workspace offset, indexed by monitor id. |
+| `overview.orderRightLeft` | `boolean` | `false` | grid | Number workspaces right to left. |
+| `overview.orderBottomUp` | `boolean` | `false` | grid | Number workspaces bottom to top. |
+| `overview.includeInactiveMonitorPreviews` | `boolean` | `true` | grid | Capture previews of windows on other monitors. |
+| `overview.workspaceSpacing` | `number` | `5` | grid | Gap between workspace thumbnails. |
+| `overview.backgroundPadding` | `number` | `10` | grid | Padding inside the panel. |
+| `overview.workspaceNumberBaseSize` | `number` | `250` | grid | Size of the workspace numbers. |
+| `overview.effects.windowOverlayOpacity` | `number` | `0.22` | grid | Tint over each window preview. |
+| `position.topMargin` | `integer` | `100` | grid | Distance of the panel from the top of the screen. |
+| `windowPreview.iconToWindowRatio` | `number` | `0.25` | grid | App icon size relative to the window. |
+| `windowPreview.iconToWindowRatioCompact` | `number` | `0.45` | grid | The same for small windows. |
+| `windowPreview.inactiveMonitorOpacity` | `number` | `0.4` | grid | Opacity of windows from other monitors. |
+| `windowPreview.cropToFill` | `boolean` | `false` | grid | Crop previews to fill their frame instead of fitting. |
+| `appearance.animation.duration.elementMoveEnter` | `integer` | `400` | grid | Window preview motion. |
+| `appearance.animation.duration.elementMoveFast` | `integer` | `200` | grid | Workspace indicator and tooltip transitions. |
+| `appearance.sizes.elevationMargin` | `number` | `10` | grid | Room left around the panel for its shadow. |
+| `hacks.hyprlandEventDebounceMs` | `integer` | `40` | both | Debounce for Hyprland event refreshes. |
+| `hacks.arbitraryRaceConditionDelay` | `integer` | `150` | both | Delay before the focus grab is taken after opening. |
 
 ---
 

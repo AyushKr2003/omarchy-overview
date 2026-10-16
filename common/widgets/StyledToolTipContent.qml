@@ -19,8 +19,8 @@ Item {
             bottom: root.bottom
             horizontalCenter: root.horizontalCenter
         }
-        color: Appearance?.colors.colTooltip ?? "#3C4043"
-        radius: Appearance?.rounding.verysmall ?? 7
+        color: Color.tooltip.background
+        radius: Style.cornerRadius
         opacity: shown ? 1 : 0
         implicitWidth: shown ? (tooltipTextObject.implicitWidth + 2 * root.horizontalPadding) : 0
         implicitHeight: shown ? (tooltipTextObject.implicitHeight + 2 * root.verticalPadding) : 0
@@ -40,9 +40,9 @@ Item {
             id: tooltipTextObject
             anchors.centerIn: parent
             text: root.text
-            font.pixelSize: Appearance?.font.pixelSize.smaller ?? 14
+            font.pixelSize: Style.font.caption
             font.hintingPreference: Font.PreferNoHinting
-            color: Appearance?.colors.colOnTooltip ?? "#FFFFFF"
+            color: Color.tooltip.text
             wrapMode: Text.Wrap
         }
     }   

@@ -9,8 +9,8 @@ Text {
     verticalAlignment: Text.AlignVCenter
     font {
         hintingPreference: Font.PreferFullHinting
-        family: Appearance?.font.family.main ?? "sans-serif"
-        pixelSize: Appearance?.font.pixelSize.small ?? 15
+        family: Style.font.family
+        pixelSize: Style.font.bodySmall
     }
-    color: Appearance?.m3colors.m3onBackground ?? "white"
+    color: Color.foreground
 }

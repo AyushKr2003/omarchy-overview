@@ -14,20 +14,12 @@ import "."
 
 Scope {
     id: overviewScope
-    property string omarchyPath: Quickshell.env("OMARCHY_PATH")
     property var shell: null
     readonly property var appLibrary: shell ? shell.appLibrary : null
     property var manifest: null
     property var settings: ({})
     readonly property string pluginId: String(manifest?.id || "omarchy-overview")
     readonly property bool missionMode: Config.options.missionControl.layout === "missionControl"
-
-    // Read a single value from this plugin's inline shell.json entry, with a
-    // fallback for missing/null values. Matches Omarchy Panel.setting().
-    function setting(name, fallback) {
-        var value = settings ? settings[name] : undefined;
-        return value === undefined || value === null ? fallback : value;
-    }
 
     // The shell hands overlay plugins no settings, so read this plugin's
     // inline entry from shell.json directly and follow edits to it.

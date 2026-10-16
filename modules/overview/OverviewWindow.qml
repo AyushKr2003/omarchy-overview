@@ -18,7 +18,6 @@ Item { // Window
     property var availableWorkspaceHeight
     property real positionBaseX: (monitorData?.x ?? 0) + (monitorData?.reserved?.[0] ?? 0)
     property real positionBaseY: (monitorData?.y ?? 0) + (monitorData?.reserved?.[1] ?? 0)
-    property int recaptureToken: 0
     property bool restrictToWorkspace: true
     property real widthRatio: {
         if (!widgetMonitorData || !monitorData)
@@ -56,22 +55,13 @@ Item { // Window
     property var appLibrary: null
     property bool showIcons: Config.options.windowPreview.showIcons
     property var iconToWindowRatio: Config.options.windowPreview.iconToWindowRatio
-    property var xwaylandIndicatorToIconRatio: Config.options.windowPreview.xwaylandIndicatorToIconRatio
     property var iconToWindowRatioCompact: Config.options.windowPreview.iconToWindowRatioCompact
     property bool cropToFill: Config.options.windowPreview.cropToFill
     property bool previewsEnabled: Config.options.overview.previewsEnabled
     property bool includeInactiveMonitorPreviews: Config.options.overview.includeInactiveMonitorPreviews
-    property int previewRecaptureDelayMs: Config.options.overview.previewRecaptureDelayMs
     property real windowOverlayOpacity: Math.max(0, Math.min(1, Config.options.overview.effects.windowOverlayOpacity))
-    property real effectiveWindowOverlayOpacity: windowOverlayOpacity
-    property string previewModeRaw: Config.options.overview.previewMode
-    property string previewMode: {
-        const mode = `${previewModeRaw ?? "live"}`.trim().toLowerCase();
-        return (mode === "event" || mode === "snapshot") ? "event" : "live";
-    }
-    property bool livePreviewEnabled: previewsEnabled && previewMode === "live"
     property bool shouldCapturePreview: {
-        if (!GlobalStates.overviewOpen || !previewsEnabled || !previewCaptureEnabled)
+        if (!GlobalStates.overviewOpen || !previewsEnabled)
             return false;
         if (includeInactiveMonitorPreviews)
             return true;
@@ -91,8 +81,6 @@ Item { // Window
     property var iconPath: resolveIconSource(iconName)
     property bool compactMode: Style.font.caption * 4 > targetWindowHeight || Style.font.caption * 4 > targetWindowWidth
 
-    property bool indicateXWayland: windowData?.xwayland ?? false
-    property bool previewCaptureEnabled: true
     property bool initialized: false
     property bool dragInProgress: false
     property bool suspendPositionAnimation: false
@@ -155,7 +143,7 @@ Item { // Window
             ? Math.max(parent.height, parent.width / srcAspect)
             : Math.min(parent.height, parent.width / srcAspect)
         captureSource: shouldCapturePreview ? root.toplevel : null
-        live: livePreviewEnabled
+        live: true
         layer.enabled: true
         layer.smooth: true
         layer.effect: MultiEffect {
@@ -169,9 +157,9 @@ Item { // Window
     Rectangle {
         anchors.fill: parent
         radius: Style.cornerRadius
-        color: pressed ? ColorUtils.applyAlpha(Style.pressedFill, Math.min(1, root.effectiveWindowOverlayOpacity + 0.30)) :
-            hovered ? ColorUtils.applyAlpha(Style.hoverFill, Math.min(1, root.effectiveWindowOverlayOpacity + 0.20)) :
-            ColorUtils.applyAlpha(Color.popups.background, root.effectiveWindowOverlayOpacity)
+        color: pressed ? ColorUtils.applyAlpha(Style.pressedFill, Math.min(1, root.windowOverlayOpacity + 0.30)) :
+            hovered ? ColorUtils.applyAlpha(Style.hoverFill, Math.min(1, root.windowOverlayOpacity + 0.20)) :
+            ColorUtils.applyAlpha(Color.popups.background, root.windowOverlayOpacity)
         border.color: hovered || pressed ? Style.hoverBorderColor : Style.normalBorderColor
         border.width: Style.normalBorderWidth
 
@@ -214,25 +202,5 @@ Item { // Window
             height: root.height
             radius: Style.cornerRadius
         }
-    }
-
-    function refreshCapture() {
-        if (!GlobalStates.overviewOpen || livePreviewEnabled || !previewsEnabled)
-            return;
-
-        root.previewCaptureEnabled = false;
-        previewResetTimer.restart();
-    }
-
-    Timer {
-        id: previewResetTimer
-        interval: Math.max(1, previewRecaptureDelayMs)
-        repeat: false
-        onTriggered: root.previewCaptureEnabled = true
-    }
-
-    onRecaptureTokenChanged: {
-        if (recaptureToken > 0)
-            root.refreshCapture();
     }
 }

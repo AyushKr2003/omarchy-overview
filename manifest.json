@@ -6,8 +6,7 @@
   "author": "AyushKr2003",
   "description": "Hyprland overview: mission-control window grid, workspace strip, type-to-search, and a classic workspace grid.",
   "kinds": [
-    "overlay",
-    "menu"
+    "overlay"
   ],
   "keepLoaded": true,
   "entryPoints": {

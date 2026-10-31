@@ -51,58 +51,84 @@ Rectangle {
     }
 
     radius: Style.cornerRadius
-    clip: true
     color: ColorUtils.applyAlpha(Color.launcher.background, 0.72)
     scale: (hovered || dropHovered) && !Style.reduceMotion ? 1.04 : 1
     z: hovered || dropHovered ? 1 : 0
     Behavior on scale { NumberAnimation { duration: Style.duration(140); easing.type: Easing.OutCubic } }
 
-    // The desktop's wallpaper; the "new desktop" cell shows it faintly.
-    Image {
+    // Qt's `clip` is rectangular, so the wallpaper and thumbnails are masked
+    // to the rounded shape instead of poking out of the corners.
+    Item {
+        id: content
         anchors.fill: parent
-        visible: Config.options.missionControl.wallpaperBackdrop && status === Image.Ready
-        source: Wallpaper.source
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        cache: true
-        sourceSize.width: Math.round(cell.width * Screen.devicePixelRatio)
-        sourceSize.height: Math.round(cell.height * Screen.devicePixelRatio)
-        opacity: cell.kind === "new" ? 0.3 : 0.85
+        layer.enabled: Style.cornerRadius > 0
+        layer.smooth: true
+        layer.effect: MultiEffect {
+            maskEnabled: true
+            maskSource: contentMask
+            maskThresholdMin: 0.5
+            maskSpreadAtMin: 1.0
+        }
+
+        // The desktop's wallpaper; the "new desktop" cell shows it faintly.
+        Image {
+            anchors.fill: parent
+            visible: Config.options.missionControl.wallpaperBackdrop && status === Image.Ready
+            source: Wallpaper.source
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            cache: true
+            sourceSize.width: Math.round(cell.width * Screen.devicePixelRatio)
+            sourceSize.height: Math.round(cell.height * Screen.devicePixelRatio)
+            opacity: cell.kind === "new" ? 0.3 : 0.85
+        }
+
+        Item {
+            anchors.fill: parent
+            visible: cell.kind !== "new"
+
+            Repeater {
+                model: ScriptModel {
+                    values: cell.cellWindows
+                }
+                delegate: Item {
+                    id: mini
+                    required property string modelData
+                    readonly property var windowData: HyprlandData.windowByAddress[modelData]
+                    readonly property var toplevel: cell.view.toplevelFor(modelData)
+                    readonly property var monitor: HyprlandData.monitors.find(m => m.id === windowData?.monitor) ?? cell.view.monitorData
+                    x: Math.round(((windowData?.at?.[0] ?? 0) - (monitor?.x ?? 0)) * cell.thumbScale)
+                    y: Math.round(((windowData?.at?.[1] ?? 0) - (monitor?.y ?? 0)) * cell.thumbScale)
+                    width: Math.max(2, Math.round((windowData?.size?.[0] ?? 0) * cell.thumbScale))
+                    height: Math.max(2, Math.round((windowData?.size?.[1] ?? 0) * cell.thumbScale))
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 2
+                        color: ColorUtils.applyAlpha(Color.foreground, 0.08)
+                        border.width: 1
+                        border.color: ColorUtils.applyAlpha(Color.foreground, 0.18)
+                    }
+
+                    ScreencopyView {
+                        anchors.fill: parent
+                        captureSource: GlobalStates.surfaceVisible && Config.options.overview.previewsEnabled ? mini.toplevel : null
+                        live: true
+                    }
+                }
+            }
+        }
     }
 
     Item {
+        id: contentMask
         anchors.fill: parent
-        visible: cell.kind !== "new"
-
-        Repeater {
-            model: ScriptModel {
-                values: cell.cellWindows
-            }
-            delegate: Item {
-                id: mini
-                required property string modelData
-                readonly property var windowData: HyprlandData.windowByAddress[modelData]
-                readonly property var toplevel: cell.view.toplevelFor(modelData)
-                readonly property var monitor: HyprlandData.monitors.find(m => m.id === windowData?.monitor) ?? cell.view.monitorData
-                x: Math.round(((windowData?.at?.[0] ?? 0) - (monitor?.x ?? 0)) * cell.thumbScale)
-                y: Math.round(((windowData?.at?.[1] ?? 0) - (monitor?.y ?? 0)) * cell.thumbScale)
-                width: Math.max(2, Math.round((windowData?.size?.[0] ?? 0) * cell.thumbScale))
-                height: Math.max(2, Math.round((windowData?.size?.[1] ?? 0) * cell.thumbScale))
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 2
-                    color: ColorUtils.applyAlpha(Color.foreground, 0.08)
-                    border.width: 1
-                    border.color: ColorUtils.applyAlpha(Color.foreground, 0.18)
-                }
-
-                ScreencopyView {
-                    anchors.fill: parent
-                    captureSource: GlobalStates.surfaceVisible && Config.options.overview.previewsEnabled ? mini.toplevel : null
-                    live: true
-                }
-            }
+        visible: false
+        layer.enabled: true
+        layer.smooth: true
+        Rectangle {
+            anchors.fill: parent
+            radius: cell.radius
         }
     }
 
